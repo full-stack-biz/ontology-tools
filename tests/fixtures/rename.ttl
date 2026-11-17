@@ -1,0 +1,24 @@
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix ex:   <https://example.org/ex#> .
+
+ex:Decision a owl:Class ;
+    rdfs:label "decision" ;
+    rdfs:comment "A choice." .
+
+ex:DecisionRefundFirst
+    a owl:NamedIndividual, ex:Decision ;
+    rdfs:label   "A Refund Is Made First" ;
+    rdfs:comment "Refund before the charge." .
+
+# ex:DecisionRefundFirstOther is a longer name and is not renamed.
+ex:DecisionRefundFirstOther
+    a owl:NamedIndividual, ex:Decision ;
+    rdfs:label   "another decision" ;
+    rdfs:comment "Not the term — see ex:DecisionRefundFirst." .
+
+ex:Taken
+    a owl:NamedIndividual, ex:Decision ;
+    rdfs:label   "taken" ;
+    rdfs:comment "Already used." .

@@ -94,6 +94,23 @@ ex:cardPresentAndCardNotPresent ot:exempt "conjunction: card present and card no
 
 Exit 1 on an ❌ finding, and with `--strict` on a ⚠️ finding too.
 
+### Renaming a term (rename.py)
+
+A name a naming check reports is fixed with `rename.py`, never with an editor's search and
+replace: it changes the term wherever the TTL writes it as a whole token (not a longer name that
+starts with it), sets the label, and rewrites each citation in the given files.
+
+```bash
+uv run "$SKILLS_DIR/scripts/rename.py" path/to/ontology.ttl ex:DecisionRefundFirst ex:RefundOrder \
+  --label "refund order" --cite lib --cite test --cite docs --dry-run
+```
+
+It prints each changed file with its count, then `named by:` with the other terms whose
+statements name the term. Their lines change, so `--changed-since` checks them next; run the
+naming check after each rename and rename what it reports. It exits 1, writing nothing, when the
+old term is not a subject, the new name is already written in the file, or the term does not have
+exactly one `rdfs:label`; a file that does not parse after the write is restored.
+
 ### Step 2 — Read and audit the ontology
 
 ```

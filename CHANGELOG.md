@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0] - 2026-11-17
+
+### Added
+- `scripts/rename.py`: renames a term — every whole-token occurrence in the TTL, its `rdfs:label` (`--label`), and its qname and `ttl://` citations in the files and directories of `--cite`; prints each changed file with its count and the other terms that name it (`named by:`); `--dry-run`; exit 1 for an unknown term, a name already in the file, or a label count other than one; restores the file when it does not parse after the write. It reuses `locate.py`'s loader, scanner and qname helpers
+- `tests/fixtures/rename.ttl` and `tests/run.sh` cases for `rename.py`
+- `SKILL.md`: "Renaming a term (rename.py)"
+
 ## [1.8.0] - 2026-11-17
 
 ### Added

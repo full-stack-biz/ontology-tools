@@ -193,6 +193,34 @@ expect_absent "ex:Wallet" "$out"                               # unchanged
 expect_absent "version-iri" "$out"                             # the ontology block is unchanged
 rm -rf "$tmp"
 
+echo "rename.py:"
+tmp="$(mktemp -d)"
+cp "$here/fixtures/rename.ttl" "$tmp/rename.ttl"
+printf '%s\n' "# (ttl://rename.ttl/ex:DecisionRefundFirst) and ex:DecisionRefundFirstOther" > "$tmp/code.ex"
+out="$(uv run "$scripts/rename.py" "$tmp/rename.ttl" ex:DecisionRefundFirst ex:RefundOrder --label "refund order" --cite "$tmp" 2>&1)"
+expect_line "rename.ttl: 2"                         "$out"   # its subject and the other term's comment
+expect_line "code.ex: 1"                            "$out"   # the ttl:// citation only
+expect_line "named by: ex:DecisionRefundFirstOther" "$out"
+renamed="$(cat "$tmp/rename.ttl")"
+expect_line 'rdfs:label   "refund order"'           "$renamed"
+expect_line "ex:DecisionRefundFirstOther"           "$renamed" # a longer name is unchanged
+expect_absent "ex:DecisionRefundFirst "             "$renamed"
+expect_line "(ttl://rename.ttl/ex:RefundOrder) and ex:DecisionRefundFirstOther" "$(cat "$tmp/code.ex")"
+if uv run "$scripts/rename.py" "$tmp/rename.ttl" ex:RefundOrder ex:Taken >/dev/null 2>&1; then
+    fail "a name in use exits 0"
+else
+    pass "a name in use exits 1"
+fi
+if uv run "$scripts/rename.py" "$tmp/rename.ttl" ex:Missing ex:Other >/dev/null 2>&1; then
+    fail "an unknown term exits 0"
+else
+    pass "an unknown term exits 1"
+fi
+before="$(cat "$tmp/rename.ttl")"
+uv run "$scripts/rename.py" "$tmp/rename.ttl" ex:RefundOrder ex:Dry --dry-run >/dev/null 2>&1
+[ "$before" = "$(cat "$tmp/rename.ttl")" ] && pass "--dry-run writes nothing" || fail "--dry-run writes nothing"
+rm -rf "$tmp"
+
 echo
 if [ "$failures" -eq 0 ]; then
     echo "all checks pass"

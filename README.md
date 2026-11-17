@@ -22,6 +22,9 @@ List all terms in a given namespace prefix to audit coverage.
 ### Positions in the File
 `scripts/locate.py` gives line numbers instead of grep: the prefixes and version (`header`), the banner sections (`outline`), a term's line range and section (`where`), the terms whose literals match a pattern (`text`), and the line a new term of a type goes after (`anchor`).
 
+### Renaming a Term
+`scripts/rename.py` renames a term in the TTL, sets its label, and rewrites its `ttl://` and qname citations in the files you name; it lists the other terms that name it, which a `--changed-since` naming check reads next.
+
 ## Quick Start
 
 ### The Problem
