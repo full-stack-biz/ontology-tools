@@ -1,0 +1,149 @@
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix ot:      <https://github.com/full-stack-biz/ontology-tools#> .
+@prefix ex:      <https://example.org/names#> .
+
+# Each term below states the finding validate.py --check-names --check-wording --check-header
+# must report for it, or that it must pass. The word lists are in names.toml.
+
+# Without owl:versionIRI and owl:priorVersion: version-iri and prior-version.
+<https://example.org/names> a owl:Ontology ;
+    owl:versionInfo "1.0.0" .
+
+# Passes every check.
+ex:Payment a owl:Class ;
+    rdfs:label "payment" ;
+    rdfs:comment "Money a customer pays." .
+
+# Passes: its label ends with its superclass's label (genus).
+ex:CardPayment a owl:Class ;
+    rdfs:subClassOf ex:Payment ;
+    rdfs:label "card payment" ;
+    rdfs:comment "A payment with a card." .
+
+# Passes: with two superclasses, the label ends with one of their labels.
+ex:Charge a owl:Class ;
+    rdfs:label "charge" ;
+    rdfs:comment "Money taken." .
+ex:CardCharge a owl:Class ;
+    rdfs:subClassOf ex:Payment, ex:Charge ;
+    rdfs:label "card charge" ;
+    rdfs:comment "A charge to a card." .
+
+# genus: the label does not end with "payment".
+ex:Refund a owl:Class ;
+    rdfs:subClassOf ex:Payment ;
+    rdfs:label "refund" ;
+    rdfs:comment "Money returned." .
+
+# label-count: two labels.
+ex:Wallet a owl:Class ;
+    rdfs:label "wallet", "purse" ;
+    rdfs:comment "A balance." .
+
+# label-count: no label.
+ex:Unlabelled a owl:Class ;
+    rdfs:comment "Has no label." .
+
+# label-unique: "ledger" and "Ledger" are one label without case; label-case for the second.
+ex:Ledger a owl:Class ;
+    rdfs:label "ledger" ;
+    rdfs:comment "A list of entries." .
+ex:LedgerCopy a owl:Class ;
+    rdfs:label "Ledger" ;
+    rdfs:comment "A copy of a ledger." .
+
+# label-format: CamelCase and an underscore.
+ex:BadFormat a owl:Class ;
+    rdfs:label "badFormat_label" ;
+    rdfs:comment "Badly written label." .
+
+# label-case: the first word is not a proper name.
+ex:Capital a owl:Class ;
+    rdfs:label "Capital letter" ;
+    rdfs:comment "Starts with a capital." .
+
+# Passes: WeVend is a proper name in names.toml.
+ex:WeVendDevice a owl:Class ;
+    rdfs:label "WeVend device" ;
+    rdfs:comment "A payment device." .
+
+# type-in-name: the name repeats its type, ex:Decision.
+ex:Decision a owl:Class ;
+    rdfs:label "decision" ;
+    rdfs:comment "A choice." .
+ex:DecisionRefundFirst a owl:NamedIndividual, ex:Decision ;
+    rdfs:label "refund first" ;
+    rdfs:comment "Refund before a credit." .
+
+# separator: CamelCase and an underscore in one name.
+ex:Inv_MixedName a owl:NamedIndividual ;
+    rdfs:label "mixed name" ;
+    rdfs:comment "Two separators." .
+
+# definition: no rdfs:comment and no skos:definition.
+ex:Undefined a owl:Class ;
+    rdfs:label "undefined" .
+
+# article.
+ex:theArticle a owl:NamedIndividual ;
+    rdfs:label "article" ;
+    rdfs:comment "Starts with an article." .
+
+# conjunction.
+ex:cashOrCard a owl:NamedIndividual ;
+    rdfs:label "cash or card" ;
+    rdfs:comment "Two things." .
+
+# negation.
+ex:notPaid a owl:NamedIndividual ;
+    rdfs:label "not paid" ;
+    rdfs:comment "A negation." .
+
+# verb: "sends" is in the verbs of names.toml.
+ex:deviceSendsMoney a owl:NamedIndividual ;
+    rdfs:label "device sends money" ;
+    rdfs:comment "A sentence." .
+
+# abbreviation: API is an all-capitals word that names.toml does not list as an acronym.
+ex:accessKey a owl:NamedIndividual ;
+    rdfs:label "API key" ;
+    rdfs:comment "An abbreviation." .
+
+# Passes: DNA is an acronym in names.toml.
+ex:dnaSample a owl:NamedIndividual ;
+    rdfs:label "DNA sample" ;
+    rdfs:comment "An allowed acronym." .
+
+# abbreviation: "oem" is in the abbreviations of names.toml.
+ex:oemDevice a owl:NamedIndividual ;
+    rdfs:label "manufacturer device" ;
+    rdfs:comment "An abbreviation in the name." .
+
+# Passes: the conjunction and the negation are exempt, with a reason.
+ex:cardPresentAndCardNotPresent a owl:NamedIndividual ;
+    rdfs:label "card present and card not present" ;
+    rdfs:comment "Visa's terms." ;
+    ot:exempt "conjunction: card present and card not present are Visa's terms",
+              "negation: card not present is Visa's term" .
+
+# exempt-reason: the exemption does not state a reason; conjunction is still reported.
+ex:debitOrCredit a owl:NamedIndividual ;
+    rdfs:label "debit or credit" ;
+    rdfs:comment "Two things." ;
+    ot:exempt "conjunction" .
+
+# replacement: deprecated without dcterms:isReplacedBy.
+ex:oldTerm a owl:NamedIndividual ;
+    rdfs:label "old term" ;
+    rdfs:comment "Replaced, without a pointer." ;
+    owl:deprecated true .
+
+# Passes: deprecated, with its replacement.
+ex:movedTerm a owl:NamedIndividual ;
+    rdfs:label "moved term" ;
+    rdfs:comment "Replaced by payment." ;
+    owl:deprecated true ;
+    dcterms:isReplacedBy ex:Payment .

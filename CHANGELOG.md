@@ -5,7 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.8.0] - 2026-11-17
+
+### Added
+- `scripts/locate.py`: positions in a Turtle file, so it is not read or edited with grep — `header` (prefixes, ontology IRI, `owl:versionInfo`, the comments around them), `outline` (banner sections with line ranges and term counts), `where` (each term's line range and section; exit 1 when absent), `text` (terms whose literals match a case-insensitive regex, optionally of one property, with a snippet), `anchor` (the last term of a type, prefix and section, and the line to insert after). A scanner skips strings, triple-quoted strings, IRIs, comments and `[ ]` blocks to find where each statement ends
+- `tests/fixtures/locate.ttl` and `tests/run.sh` cases for each `locate.py` command
+- `SKILL.md`: "Positions in the File (locate.py)" with the rule never to grep a TTL file
+- `validate.py --check-names`: errors `label-count`, `label-unique`, `label-format`, `label-case`, `type-in-name`, `separator`, `definition`, `exempt-reason` (OBO Foundry principle 12; Schober et al. 2009, BMC Bioinformatics 10:125; W3C vocabulary principles 2.2)
+- `validate.py --check-wording`: warnings `article`, `conjunction`, `negation`, `verb`, `abbreviation` on the words of a local name and its label, and `genus` for a subclass label that does not end with any superclass's label
+- `validate.py --check-header`: errors `version-iri`, `prior-version` on the `owl:Ontology` and `replacement` on a deprecated term without `dcterms:isReplacedBy` (W3C 2.3, 2.4)
+- `validate.py --config FILE` (default `ontology-tools.toml` next to the TTL): the word lists of the naming checks
+- `validate.py --changed-since REF`: the naming checks read only the terms whose statements `git diff REF` changes (line ranges from `locate.py`)
+- `ot:exempt "<rule>: <reason>"` on a term exempts it from one rule
+- `SKILL.md`: "Naming checks (validate.py)" with the rules, their sources, the config and the exemption
+- `tests/fixtures/names.ttl`, `names.toml` and `tests/run.sh` cases for each rule, the config, the exit codes and `--changed-since`
+
+### Changed
+- `validate.py` exits 1 on an error finding, and with `--strict` on a warning; it exited 0 after any warning
 
 ## [1.7.0] - 2026-08-31
 

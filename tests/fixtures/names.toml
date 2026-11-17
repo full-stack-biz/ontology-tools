@@ -1,0 +1,6 @@
+# The word lists of validate.py's --check-names and --check-wording for names.ttl.
+[names]
+proper_names = ["WeVend"]
+acronyms = ["DNA"]
+abbreviations = ["oem"]
+verbs = ["sends"]

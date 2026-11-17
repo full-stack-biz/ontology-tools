@@ -1,0 +1,39 @@
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+# A vendor namespace, as a header comment.
+@prefix ex: <https://example.org/ex#> .
+@prefix vendor: <https://example.org/vendor#> .
+
+<https://example.org/ex>
+    a owl:Ontology ;
+    # The version rule, as a comment inside the ontology block.
+    owl:versionInfo "1.2.3" .
+
+# ══════════════════════════════════════════════════════════════════════════════
+# CLASSES
+# ══════════════════════════════════════════════════════════════════════════════
+
+ex:Fact a owl:Class ; rdfs:label "Fact" .
+
+# A comment line with a period. It does not end a statement.
+ex:Payment
+    a owl:Class ;
+    rdfs:label "Payment" ;
+    rdfs:comment "A sentence. Another sentence with 4.5 dollars. The end." ;
+    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty ex:amount ; owl:cardinality 1 ] .
+
+# ══════════════════════════════════════════════════════════════════════════════
+# VENDOR FACTS
+# ══════════════════════════════════════════════════════════════════════════════
+
+vendor:firstFact
+    a owl:NamedIndividual, ex:Fact ;
+    rdfs:label "First Fact" ;
+    rdfs:comment """A long comment over
+two lines. It names the top-off time.""" .
+
+vendor:secondFact a owl:NamedIndividual, ex:Fact ; rdfs:label "Second Fact" ;
+    rdfs:comment "A dryer's coin value; the TOP OFF is in minutes." .
+
+ex:ownFact a owl:NamedIndividual, ex:Fact ; rdfs:label "Own Fact" .

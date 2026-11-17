@@ -7,7 +7,10 @@ description: >-
   classes, properties, and individuals without reading the raw TTL, search for
   terms by name or label; (4) resolve ttl:// references — look up a specific
   term by ttl://filename.ttl/prefix:LocalName and return its triples; (5) draw —
-  emit a Mermaid classDiagram of a scoped part of the ontology. Use when
+  emit a Mermaid classDiagram of a scoped part of the ontology; (6) locate —
+  the sections, the line range of a term, the terms whose comments match a
+  pattern, the prefixes and version, and the line to add a new term after,
+  so a TTL file is never read or edited with grep. Use when
   asked to: "validate ontology", "check against ontology", "does this violate
   the ontology", "ontology gap", "audit domain model", "apply ontology to this
   decision", "what's in this ontology", "list ontology terms", "find ontology
@@ -46,6 +49,50 @@ uv run "$SKILLS_DIR/scripts/validate.py" path/to/ontology.ttl \
 ```
 
 If parse fails: fix the TTL before anything else. Parse errors are shown with line numbers.
+
+### Naming checks (validate.py)
+
+```bash
+# Errors (❌): labels, names, definitions; warnings (⚠️): the words of names and labels;
+# errors on the header: version IRIs and deprecated terms
+uv run "$SKILLS_DIR/scripts/validate.py" path/to/ontology.ttl \
+  --check-names --check-wording --check-header
+
+# Only the terms a change touches: their statements differ from the git ref
+uv run "$SKILLS_DIR/scripts/validate.py" path/to/ontology.ttl \
+  --check-names --check-wording --check-header --changed-since origin/main
+```
+
+Each finding is `<mark> <rule> <term>: <message>`. The rules and their sources:
+
+| Rule | Kind | Reported when | Source |
+|---|---|---|---|
+| `label-count` | ❌ | not exactly one `rdfs:label` | OBO Foundry principle 12 |
+| `label-unique` | ❌ | another term has the label, ignoring case | OBO principle 12 |
+| `label-format` | ❌ | CamelCase, `_`, doubled or edge spaces in a label | OBO principle 12; Schober et al. 2009, 3.3 |
+| `label-case` | ❌ | the label's first word is capitalized and is not a proper name or an acronym | OBO principle 12; Schober 4.1 |
+| `type-in-name` | ❌ | the local name repeats the local name of its own `rdf:type` | Schober 1.3 |
+| `separator` | ❌ | CamelCase and `_` in one local name; `(file)`: names of both styles in one file | Schober 3.3 |
+| `definition` | ❌ | no `rdfs:comment` and no `skos:definition` | W3C vocabulary principles 2.2 |
+| `version-iri`, `prior-version` | ❌ | the `owl:Ontology` has no `owl:versionIRI` or `owl:priorVersion` | W3C 2.4 |
+| `replacement` | ❌ | `owl:deprecated true` without `dcterms:isReplacedBy` | W3C 2.3 |
+| `exempt-reason` | ❌ | an exemption does not state a reason | — |
+| `article`, `conjunction`, `negation`, `verb`, `abbreviation` | ⚠️ | the word is in the local name or the label | Schober 1.1, 2.2, 2.4, 3.4 |
+| `genus` | ⚠️ | a subclass's label does not end with the label of any of its superclasses | Schober 3.2 |
+
+The word lists are a TOML file: `--config FILE`, or `ontology-tools.toml` next to the TTL.
+Table `[names]`: `proper_names` and `acronyms` (allowed capitals), `abbreviations` (words to
+report), `verbs` (no default), and `articles`, `conjunctions`, `negations`, which replace the
+English defaults.
+
+An exemption is written on the term, with its reason, and covers one rule:
+
+```turtle
+@prefix ot: <https://github.com/full-stack-biz/ontology-tools#> .
+ex:cardPresentAndCardNotPresent ot:exempt "conjunction: card present and card not present are Visa's terms" .
+```
+
+Exit 1 on an ❌ finding, and with `--strict` on a ⚠️ finding too.
 
 ### Step 2 — Read and audit the ontology
 
@@ -213,6 +260,40 @@ uv run "$SKILLS_DIR/scripts/list.py" docs/domain.ttl tenant
 ```
 
 Exit 1 on file not found or parse error. Exit 0 with "No terms matching" message when filter finds nothing.
+
+---
+
+## Positions in the File (locate.py)
+
+**Never `grep`, `sed -n` or read a TTL file to find a term, a section, a prefix or a sentence.**
+`locate.py` answers each of those with the line numbers, so the Read tool opens exactly the
+block (`offset=<start>`, `limit=<end-start+1>`) and an Edit lands in the right section.
+
+| Question | Command |
+|---|---|
+| Which prefixes, which ontology IRI, which `owl:versionInfo`, and the comments around them (a version rule, the namespace rules)? | `locate.py header <file>` |
+| Which sections does the file have, on which lines, with how many terms? | `locate.py outline <file>` |
+| On which lines is a term written, and in which section? (every block whose subject it is) | `locate.py where <file> <term>...` |
+| Which terms say something about X? (their comments, not only names and labels) | `locate.py text <file> '<regex>' [--prop rdfs:comment]` |
+| After which line does a new term of a type go? | `locate.py anchor <file> --type <class> [--prefix p] [--section <part of title>]` |
+
+```bash
+uv run "$SKILLS_DIR/scripts/locate.py" outline docs/domain.ttl
+# → lines 1867-2029, 26 terms: VENDOR: WEVEND
+uv run "$SKILLS_DIR/scripts/locate.py" where docs/domain.ttl wevend:theMachineStoresItsOwnCyclePrices
+# → wevend:theMachineStoresItsOwnCyclePrices: lines 2017-2021  [VENDOR: WEVEND]
+uv run "$SKILLS_DIR/scripts/locate.py" text docs/domain.ttl 'top.?off' --prop rdfs:comment
+# → wash:OpenQuestion…  rdfs:comment  lines 2698-2701  [OPEN QUESTIONS]
+#       …value_of_coin_2 (the cents of a dryer's top-off coin) and…
+uv run "$SKILLS_DIR/scripts/locate.py" anchor docs/domain.ttl --type wash:VendorFact --prefix wevend --section wevend
+# → last match: wevend:pciScopeIsUnanswered, lines 2023-2027  [VENDOR: WEVEND]
+#   insert after line 2027
+```
+
+A term is a qname, a full IRI or a `ttl://file.ttl/prefix:Name` reference. A section begins at a
+banner comment line of `═` or `=` characters followed by a comment line with its title. `where`
+exits 1 when a term is not the subject of any statement. Use `lookup.py` for a term's triples,
+`locate.py` for where they are.
 
 ---
 

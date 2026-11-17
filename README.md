@@ -7,6 +7,9 @@ A Claude Code skill for working with [Turtle (.ttl)](https://www.w3.org/TR/turtl
 ### Ontology Health Checks
 Parse any `.ttl` file, verify syntax, count triples, and surface structural gaps—missing labels, missing ranges, undocumented invariants.
 
+### Naming Checks
+`validate.py --check-names --check-wording --check-header` reports a label that is missing, repeated, CamelCase or capitalized; a name that repeats its type or mixes separators; a term without a definition; the articles, conjunctions, negations, verbs and abbreviations in a name; a subclass label without its superclass's; and a missing version IRI or replacement of a deprecated term, each with its rule (OBO Foundry principle 12, Schober et al. 2009, the W3C vocabulary principles). `--changed-since REF` checks only the terms a change touches; `ot:exempt "<rule>: <reason>"` exempts one term from one rule; errors exit 1.
+
 ### Implementation Audits
 Check code, schema, or architecture decisions against declared ontology axioms. Every check gets a verdict: `✅ PASS`, `❌ FAIL`, `⚠️ MISMATCH`, or `⚠️ ONTOLOGY GAP`.
 
@@ -15,6 +18,9 @@ Named invariants (`*:Inv_*`) are extracted automatically and checked against the
 
 ### Namespace Inspection
 List all terms in a given namespace prefix to audit coverage.
+
+### Positions in the File
+`scripts/locate.py` gives line numbers instead of grep: the prefixes and version (`header`), the banner sections (`outline`), a term's line range and section (`where`), the terms whose literals match a pattern (`text`), and the line a new term of a type goes after (`anchor`).
 
 ## Quick Start
 
